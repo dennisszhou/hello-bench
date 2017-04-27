@@ -209,13 +209,13 @@ class BenchRunner:
             self.registry2 += '/'
         
     def run_echo_hello(self, repo):
-        cmd = '%s run %s%s echo hello' % (self.docker, self.registry, repo)
+        cmd = '%s run --security-opt seccomp:unconfined %s%s echo hello' % (self.docker, self.registry, repo)
         rc = os.system(cmd)
         assert(rc == 0)
 
     def run_cmd_arg(self, repo, runargs):
         assert(len(runargs.mount) == 0)
-        cmd = '%s run ' % self.docker
+        cmd = '%s run --security-opt seccomp:unconfined ' % self.docker
         cmd += '%s%s ' % (self.registry, repo)
         cmd += runargs.arg
         print cmd
@@ -225,7 +225,7 @@ class BenchRunner:
     def run_cmd_arg_wait(self, repo, runargs):
         name = '%s_bench_%d' % (repo, random.randint(1,1000000))
         env = ' '.join(['-e %s=%s' % (k,v) for k,v in runargs.env.iteritems()])
-        cmd = ('%s run --name=%s %s %s%s %s' %
+        cmd = ('%s run --security-opt seccomp:unconfined --name=%s %s %s%s %s' %
                (self.docker, name, env, self.registry, repo, runargs.arg))
         print cmd
         # line buffer output
@@ -248,7 +248,7 @@ class BenchRunner:
         p.wait()
 
     def run_cmd_stdin(self, repo, runargs):
-        cmd = '%s run ' % self.docker
+        cmd = '%s run --security-opt seccomp:unconfined ' % self.docker
         for a,b in runargs.mount:
             a = os.path.join(os.path.dirname(os.path.abspath(__file__)), a)
             a = tmp_copy(a)
@@ -267,7 +267,7 @@ class BenchRunner:
 
     def run_nginx(self):
         name = 'nginx_bench_%d' % (random.randint(1,1000000))
-        cmd = '%s run --name=%s -p %d:%d %snginx' % (self.docker, name, NGINX_PORT, 80, self.registry)
+        cmd = '%s run --security-opt seccomp:unconfined --name=%s -p %d:%d %snginx' % (self.docker, name, NGINX_PORT, 80, self.registry)
         print cmd
         p = subprocess.Popen(cmd, shell=True)
         while True:
@@ -285,7 +285,7 @@ class BenchRunner:
 
     def run_iojs(self):
         name = 'iojs_bench_%d' % (random.randint(1,1000000))
-        cmd = '%s run --name=%s -p %d:%d ' % (self.docker, name, IOJS_PORT, 80)
+        cmd = '%s run --security-opt seccomp:unconfined --name=%s -p %d:%d ' % (self.docker, name, IOJS_PORT, 80)
         a = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'iojs')
         a = tmp_copy(a)
         b = '/src'
@@ -309,7 +309,7 @@ class BenchRunner:
 
     def run_node(self):
         name = 'node_bench_%d' % (random.randint(1,1000000))
-        cmd = '%s run --name=%s -p %d:%d ' % (self.docker, name, NODE_PORT, 80)
+        cmd = '%s run --security-opt seccomp:unconfined --name=%s -p %d:%d ' % (self.docker, name, NODE_PORT, 80)
         a = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'node')
         a = tmp_copy(a)
         b = '/src'
@@ -333,7 +333,7 @@ class BenchRunner:
 
     def run_registry(self):
         name = 'registry_bench_%d' % (random.randint(1,1000000))
-        cmd = '%s run --name=%s -p %d:%d ' % (self.docker, name, REGISTRY_PORT, 5000)
+        cmd = '%s run --security-opt seccomp:unconfined --name=%s -p %d:%d ' % (self.docker, name, REGISTRY_PORT, 5000)
         cmd += '-e GUNICORN_OPTS=["--preload"] '
         cmd += '%sregistry' % self.registry
         print cmd
@@ -371,6 +371,7 @@ class BenchRunner:
 
     def pull(self, bench):
         cmd = '%s pull %s%s' % (self.docker, self.registry, bench.name)
+        print cmd
         rc = os.system(cmd)
         assert(rc == 0)
 
